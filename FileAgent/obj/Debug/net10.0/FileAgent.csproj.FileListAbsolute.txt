@@ -1,0 +1,11 @@
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/bin/Debug/net10.0/FileAgent.deps.json
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/bin/Debug/net10.0/FileAgent.dll
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/bin/Debug/net10.0/FileAgent.pdb
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.GeneratedMSBuildEditorConfig.editorconfig
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.AssemblyInfoInputs.cache
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.AssemblyInfo.cs
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.csproj.CoreCompileInputs.cache
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.dll
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/refint/FileAgent.dll
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.pdb
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/ref/FileAgent.dll
