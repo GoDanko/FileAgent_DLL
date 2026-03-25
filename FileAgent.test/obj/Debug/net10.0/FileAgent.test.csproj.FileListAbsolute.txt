@@ -97,3 +97,4 @@
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.pdb
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.genruntimeconfig.cache
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/obj/Debug/net10.0/ref/FileAgent.test.dll
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.sourcelink.json

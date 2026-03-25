@@ -1,83 +1,162 @@
 ﻿using FileAgent;
 using System;
+using Xunit;
 
 namespace FileAgent.test;
 
 public class UnitTest1
 {
+
     [Fact]
     public void EstablishNestedFileConnection_FileCreated_Created() {
-        string[] file1Data = new string[3];
-        file1Data[0] = $"TEST1_{Guid.NewGuid():N}";
-        file1Data[1] = $"DIR1_{Guid.NewGuid():N}";
-        file1Data[2] = Path.GetTempPath();
-        	
-	    FileHandle testObject1 = FileHandle.EstablishNestedFileConnection(file1Data[0], file1Data[1], file1Data[2], false);
-        FileHandle.FileItemStatus expectedStatus = FileHandle.FileItemStatus.Created;
-        
-        Assert.True(Directory.Exists(Path.Combine(file1Data[2], file1Data[1])));
-        Assert.True(File.Exists(Path.Combine(file1Data[2], file1Data[1], file1Data[0])));
-        Assert.Equal(testObject1.fileState, expectedStatus);
+        (string name, string dir, string path) fileData = ($"FileAgent_TESTFILE1_{Guid.NewGuid():N}", $"FIleAgent_TESTDIR1_{Guid.NewGuid():N}", Path.GetTempPath());
 
-        File.Delete(Path.Combine(file1Data[2], file1Data[1], file1Data[0]));
-        Directory.Delete(Path.Combine(file1Data[2], file1Data[1]));
+	    FileHandle testObject1 = FileHandle.EstablishNestedFileConnection(fileData.name, fileData.dir, fileData.path, false);
+        FileHandle.FileItemStatus expectedStatus = FileHandle.FileItemStatus.Created;
+
+        Assert.True(Directory.Exists(Path.Combine(fileData.path, fileData.dir)));
+        Assert.True(File.Exists(Path.Combine(fileData.path, fileData.dir, fileData.name)));
+        Assert.Equal(testObject1.fileState, expectedStatus);
+        
+        try {
+            File.Delete(Path.Combine(fileData.path, fileData.dir, fileData.name));
+            Directory.Delete(Path.Combine(fileData.path, fileData.dir));
+        } catch (Exception ex) {
+            throw new Exception($"Test 1: Couldn't clean {Path.Combine(fileData.path, fileData.dir, fileData.name)}. \n because: {ex}");
+        }
     }
 
     [Fact]
     public void EstablishNestedFileConnection_FileExists_Exists() {
-        string[] file2Data = new string[3];
-        file2Data[0] = $"TEST2_{Guid.NewGuid():N}";
-        file2Data[1] = $"DIR2_{Guid.NewGuid():N}";
-        file2Data[2] = Path.GetTempPath();
+        (string name, string dir, string path) fileData = ($"FileAgent_TESTFILE2_{Guid.NewGuid():N}", $"FIleAgent_TESTDIR2_{Guid.NewGuid():N}", Path.GetTempPath());
+
         try {
-            Directory.CreateDirectory(Path.Combine(file2Data[2], file2Data[1]));
-            File.Create(Path.Combine(file2Data[2], file2Data[1], file2Data[0]));
+            Directory.CreateDirectory(Path.Combine(fileData.path, fileData.dir));
+            File.Create(Path.Combine(fileData.path, fileData.dir, fileData.name));
         } catch (Exception ex) {
-            throw new Exception("Test inconclusive because: ", ex);
+            throw new Exception($"Test 2: inconclusive. \n because: {ex}");
         }
 
-        FileHandle testObject2 = FileHandle.EstablishNestedFileConnection(file2Data[0], file2Data[1], file2Data[2], false);
+        FileHandle testObject2 = FileHandle.EstablishNestedFileConnection(fileData.name, fileData.dir, fileData.path, false);
         FileHandle.FileItemStatus expectedStatus = FileHandle.FileItemStatus.Exists;
 
         Assert.Equal(testObject2.fileState, expectedStatus);
 
-        File.Delete(Path.Combine(file2Data[2], file2Data[1], file2Data[0]));
-        Directory.Delete(Path.Combine(file2Data[2], file2Data[1]));
+        try {
+            File.Delete(Path.Combine(fileData.path, fileData.dir, fileData.name));
+            Directory.Delete(Path.Combine(fileData.path, fileData.dir));
+        } catch (Exception ex) {
+            throw new Exception($"Test 2: Couldn't clean {Path.Combine(fileData.path, fileData.dir, fileData.name)}. \n because: {ex}");
+        }
     }
 
     [Fact]
     public void EstablishFileConnection_FileCreated_Created() {
-        string[] file3Data = new string[2];
-        file3Data[0] = $"TEST3_{Guid.NewGuid():N}";
-        file3Data[1] = Path.GetTempPath();
-        	
-	    FileHandle testObject3 = FileHandle.EstablishFileConnection(file3Data[0], file3Data[1], false);
+        (string name, string path) fileData = ($"FileAgent_TESTFILE3_{Guid.NewGuid():N}", Path.GetTempPath());
+
+	    FileHandle testObject3 = FileHandle.EstablishFileConnection(fileData.name, fileData.path, false);
         FileHandle.FileItemStatus expectedStatus = FileHandle.FileItemStatus.Created;
         
-        Assert.True(File.Exists(Path.Combine(file3Data[1], file3Data[0])));
+        Assert.True(File.Exists(Path.Combine(fileData.path, fileData.name)));
         Assert.Equal(testObject3.fileState, expectedStatus);
 
-        File.Delete(Path.Combine(file3Data[1], file3Data[0]));
+        try {
+            File.Delete(Path.Combine(fileData.path, fileData.name));
+        } catch (Exception ex) {
+            throw new Exception($"Test 3: Couldn't clean {Path.Combine(fileData.path, fileData.name)}. \n because: {ex}");
+        }
     }
 
     [Fact]
     public void EstablishFileConnection_FileExists_Exists() {
-        string[] file4Data = new string[2];
-        file4Data[0] = $"TEST4_{Guid.NewGuid():N}";
-        file4Data[1] = Path.GetTempPath();
+        (string name, string path) fileData = ($"FileAgent_TESTFILE4_{Guid.NewGuid():N}", Path.GetTempPath());
         try {
-            File.Create(Path.Combine(file4Data[1], file4Data[0]));
+            File.Create(Path.Combine(fileData.path, fileData.name));
         } catch (Exception ex) {
-            throw new Exception("Test inconclusive because: ", ex);
+            throw new Exception($"Test 4: inconclusive. \n because: {ex}");
         }
 
-        FileHandle testObject4 = FileHandle.EstablishFileConnection(file4Data[0], file4Data[1], false);
+        FileHandle testObject4 = FileHandle.EstablishFileConnection(fileData.name, fileData.path, false);
         FileHandle.FileItemStatus expectedStatus = FileHandle.FileItemStatus.Exists;
 
         Assert.Equal(testObject4.fileState, expectedStatus);
 
-        File.Delete(Path.Combine(file4Data[1], file4Data[0]));
+        try {
+            File.Delete(Path.Combine(fileData.path, fileData.name));
+        } catch (Exception ex) {
+            throw new Exception($"Test 4: Couldn't clean {Path.Combine(fileData.path, fileData.name)}. \n because: {ex}");
+        }
     }
 
+    [Fact]
+    public void DeleteHandle_NestedFileDeleted() {
+        (string name, string dir, string path) fileData = ($"FileAgent_TESTFILE5_{Guid.NewGuid():N}", $"FIleAgent_TESTDIR5_{Guid.NewGuid():N}", Path.GetTempPath());
+        try {
+            Directory.CreateDirectory(Path.Combine(fileData.path, fileData.dir));
+            File.Create(Path.Combine(fileData.path, fileData.dir, fileData.name));
+        } catch (Exception ex) {
+            throw new Exception($"Test 2: inconclusive. \n because: {ex}");
+        }
 
+        FileHandle testObject5 = FileHandle.EstablishNestedFileConnection(fileData.name, fileData.dir, fileData.path, false);
+        FileHandle.DeleteHandle(testObject5);
+
+        Assert.False(File.Exists(Path.Combine(fileData.path, fileData.dir, fileData.name)));
+    }
+
+    [Fact]
+    public void DeleteHandle_FileDeted() {
+        (string name, string path) fileData = ($"FileAgent_TESTFILE6_{Guid.NewGuid():N}", Path.GetTempPath());
+        try {
+            File.Create(Path.Combine(fileData.path, fileData.name));
+        } catch (Exception ex) {
+            throw new Exception($"Test 6: inconclusive. \n because: {ex}");
+        }
+
+        FileHandle testObject6 = FileHandle.EstablishFileConnection(fileData.name, fileData.path, false);
+        FileHandle.DeleteHandle(testObject6);
+        
+        Assert.False(File.Exists(Path.Combine(fileData.path, fileData.name)));
+    }
+    
+    [Fact]
+    public void ClearCreatedHandles_emptyCreatedFilesArray_AllCreated() {
+        (string name, string path) file1Data = ($"FileAgent_TESTFILE7_{Guid.NewGuid():N}", Path.GetTempPath());
+        (string name, string path) file2Data = ($"FileAgent_TESTFILE8_{Guid.NewGuid():N}", Path.GetTempPath());
+        FileHandle testObject7 = FileHandle.EstablishFileConnection(file1Data.name, file1Data.path, false);
+        FileHandle testObject8 = FileHandle.EstablishFileConnection(file2Data.name, file2Data.path, false);
+        
+        if (File.Exists(Path.Combine(file1Data.path, file1Data.name)) && File.Exists(Path.Combine(file2Data.path, file2Data.name))) {
+            Assert.Equal(FileHandle.createdFiles.Count, 2);
+            FileHandle.ClearCreatedHandles();
+            Assert.Equal(FileHandle.createdFiles.Count, 0);
+            Assert.False(File.Exists(Path.Combine(file1Data.path, file1Data.name)));
+            Assert.False(File.Exists(Path.Combine(file2Data.path, file2Data.name)));
+        } else {
+            throw new Exception($"Test 7: inconclusive. \n because FileHandle.EstablishFileConnection() failed to establish a file within the host file system.");
+        }
+    }
+
+    [Fact]
+    public void ClearCreatedHandles_emptyCreatedFilesArray_CreatedAndExists() {
+        (string name, string path) file1Data = ($"FileAgent_TESTFILE7_{Guid.NewGuid():N}", Path.GetTempPath());
+        (string name, string path) file2Data = ($"FileAgent_TESTFILE8_{Guid.NewGuid():N}", Path.GetTempPath());
+        try {
+            File.Create(Path.Combine(file1Data.path, file1Data.name));
+        } catch (Exception ex) {
+            throw new Exception($"Test 6: inconclusive. \n because: {ex}");
+        }
+        FileHandle testObject9 = FileHandle.EstablishFileConnection(file1Data.name, file1Data.path, false);
+        FileHandle testObject10 = FileHandle.EstablishFileConnection(file2Data.name, file2Data.path, false);
+        
+        if (File.Exists(Path.Combine(file1Data.path, file1Data.name)) && File.Exists(Path.Combine(file2Data.path, file2Data.name))) {
+            Assert.Equal(testObject9.fileState, FileHandle.FileItemStatus.Existed);
+            FileHandle.ClearCreatedHandles();
+            Assert.Equal(FileHandle.createdFiles.Count, 0);
+            Assert.True(File.Exists(Path.Combine(file1Data.path, file1Data.name)));
+            Assert.False(File.Exists(Path.Combine(file2Data.path, file2Data.name)));
+        } else {
+            throw new Exception($"Test 8: inconclusive. \n because FileHandle.EstablishFileConnection() failed to establish a file within the host file system.");
+        }
+    } 
 }

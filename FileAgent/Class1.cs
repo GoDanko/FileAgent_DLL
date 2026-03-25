@@ -7,7 +7,7 @@
         public string localPath = "";
         public string fullFilePath = "";
         public FileItemStatus fileState = FileItemStatus.NoInfo;
-        static internal List<FileHandle> createdFiles = new List<FileHandle> ();
+        static public List<FileHandle> createdFiles = new List<FileHandle> ();
 
         public enum FileItemStatus {
             NoInfo, // Info has yet to be gathered
@@ -17,6 +17,8 @@
             Created, // successfully created the file
             Retracted // A file was to be created, but prevented due to unmet requirements 
         }
+
+        private FileHandle() {}
 
         static public FileHandle EstablishNestedFileConnection(string fileName, string wrapinDirectory, string? path = null, bool insist = true) {
             FileHandle result = new FileHandle() {
@@ -70,11 +72,13 @@
 
             return result;
         }
+
         
-        static private bool DeleteHandle(FileHandle target) {
+        
+        static public bool DeleteHandle(FileHandle target) {
 // For now this will not be used, because the file's are being used
 // in the moment of the supposed deletion, which leads to exception
-            bool isWrapped = string.IsNullOrWhiteSpace(target.wrappingDirectory);
+            bool isWrapped = !string.IsNullOrWhiteSpace(target.wrappingDirectory);
 
             if (isWrapped) {
                 string directoryPath = Path.Combine(target.localPath, target.wrappingDirectory);
@@ -107,12 +111,12 @@
             return false;
         }
 
-        static internal void ClearCreatedHandles() {
+        static public void ClearCreatedHandles() {
 // Don't use because of concerns related to DeleteHandle(FileHandle)
             for (int i = 0; i < createdFiles.Count; i++) {
                 Console.WriteLine($"File: {createdFiles[i].fullFilePath}. Status: {createdFiles[i].fileState}.");
                 if (createdFiles[i].fileState == FileItemStatus.Created) {
-                    DeleteHandle(createdFiles[i]);
+                   DeleteHandle(createdFiles[i]);
                 }
             }
             Console.ReadKey();
@@ -184,7 +188,7 @@
 #pragma warning restore CS8604
             if (File.Exists(targetPath)) return FileItemStatus.Exists;
             try {
-                File.Create(targetPath);
+                File.Create(targetPath).Dispose();
                 return File.Exists(targetPath) ? FileItemStatus.Created : FileItemStatus.Denied;
             } catch {
                 return FileItemStatus.Denied;

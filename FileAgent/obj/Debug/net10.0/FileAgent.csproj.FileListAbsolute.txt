@@ -9,3 +9,4 @@
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/refint/FileAgent.dll
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.pdb
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/ref/FileAgent.dll
+/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/Debug/net10.0/FileAgent.sourcelink.json
