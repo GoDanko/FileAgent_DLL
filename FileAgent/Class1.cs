@@ -1,73 +1,62 @@
 ﻿namespace FileAgent 
 {
-    public class FileHandle
+    public class FSItemHandle
     {
-        public string fileName = "";
-        public string wrappingDirectory = "";
+        public string name = "";
         public string localPath = "";
-        public string fullFilePath = "";
-        public FileItemStatus fileState = FileItemStatus.NoInfo;
-        static public List<FileHandle> createdFiles = new List<FileHandle> ();
+        internal FileState fileDiagnostics;
 
-        public enum FileItemStatus {
-            NoInfo, // Info has yet to be gathered
-            Exists, // A File with the same name existed
-            Denied, // Failed to create the file
-            Missing, // File isn't present during check
-            Created, // successfully created the file
-            Retracted // A file was to be created, but prevented due to unmet requirements 
+
+        internal FSItemHandle() {
+            fileDiagnostics = new FileState();
         }
 
-        private FileHandle() {}
-
-        static public FileHandle EstablishNestedFileConnection(string fileName, string wrapinDirectory, string? path = null, bool insist = true) {
-            FileHandle result = new FileHandle() {
-                fileName = fileName,
+        static public FSItemHandle EstablishNestedFileConnection(string name, string wrapinDirectory, string? path = null, bool insist = true) {
+            FSItemHandle result = new FSItemHandle() {
+                name = name,
                 wrappingDirectory = wrapinDirectory,
-                fileState = FileItemStatus.NoInfo
+                fileDiagnostics = FileItemStatus.NoInfo
             };
 
             if (path != null) {
-                (FileItemStatus directoryStatus, FileItemStatus fileStatus) status = TryCreateNestedFile(path, wrapinDirectory, fileName);
-                result.fileState = status.fileStatus;
+                (FileItemStatus directoryStatus, FileItemStatus fileStatus) status = TryCreateNestedFile(path, wrapinDirectory, name);
+                result.fileDiagnostics = status.fileStatus;
                 result.localPath = path;
-                result.fullFilePath = Path.Combine(path, wrapinDirectory, fileName);
-                if (status.directoryStatus == FileItemStatus.Created) createdFiles.Add(result);
-                if (result.fileState == FileItemStatus.Exists || result.fileState == FileItemStatus.Created) return result;
+                result.fullFilePath = Path.Combine(path, wrapinDirectory, name);
+                if (result.fileDiagnostics == FileItemStatus.Exists || result.fileDiagnostics == FileItemStatus.Created) return result;
             }
             if (!insist) return result;
 
-            while (result.fileState != FileItemStatus.Exists || result.fileState != FileItemStatus.Created) { 
-                (FileItemStatus directoryStatus, FileItemStatus fileStatus) status = TryCreateNestedFile(result.localPath, wrapinDirectory, fileName);
-                result.fullFilePath = Path.Combine(result.localPath, wrapinDirectory, fileName);
-                result.fileState = status.fileStatus;
-                if (status.directoryStatus == FileItemStatus.Created) createdFiles.Add(result);
-                if (result.fileState == FileItemStatus.Exists || result.fileState == FileItemStatus.Created) return result;
+            while (result.fileDiagnostics != FileItemStatus.Exists || result.fileDiagnostics != FileItemStatus.Created) { 
+                (FileItemStatus directoryStatus, FileItemStatus fileStatus) status = TryCreateNestedFile(result.localPath, wrapinDirectory, name);
+                result.fullFilePath = Path.Combine(result.localPath, wrapinDirectory, name);
+                result.fileDiagnostics = status.fileStatus;
+                if (result.fileDiagnostics == FileItemStatus.Exists || result.fileDiagnostics == FileItemStatus.Created) return result;
             }
 
             return result;
         }
         
-        static public FileHandle EstablishFileConnection(string fileName, string? path = null, bool insist = false) {
-            FileHandle result = new FileHandle() {
-                fileName = fileName,
-                fileState = FileItemStatus.NoInfo
+        static public FSItemHandle EstablishFileConnection(string name, string? path = null, bool insist = false) {
+            FSItemHandle result = new FSItemHandle() {
+                name = name,
+                fileDiagnostics = FileItemStatus.NoInfo
             };
             
             if (path != null) {
-                result.fileState = EstablishFile(path, fileName);
+                result.fileDiagnostics = EstablishFile(path, name);
                 result.localPath = path;
-                result.fullFilePath = Path.Combine(path, fileName);
-                if (result.fileState == FileItemStatus.Created) createdFiles.Add(result);
-                if (result.fileState == FileItemStatus.Exists || result.fileState == FileItemStatus.Created) return result;
+                result.fullFilePath = Path.Combine(path, name);
+                if (result.fileDiagnostics == FileItemStatus.Created) createdFiles.Add(result);
+                if (result.fileDiagnostics == FileItemStatus.Exists || result.fileDiagnostics == FileItemStatus.Created) return result;
             } 
             if (!insist) return result;
 
-            while (result.fileState != FileItemStatus.Exists || result.fileState != FileItemStatus.Created) { 
-                result.fullFilePath = Path.Combine(result.localPath, fileName);
-                result.fileState = EstablishFile(result.localPath, fileName);
-                if (result.fileState == FileItemStatus.Created) createdFiles.Add(result);
-                if (result.fileState == FileItemStatus.Exists || result.fileState == FileItemStatus.Created) return result;
+            while (result.fileDiagnostics != FileItemStatus.Exists || result.fileDiagnostics != FileItemStatus.Created) { 
+                result.fullFilePath = Path.Combine(result.localPath, name);
+                result.fileDiagnostics = EstablishFile(result.localPath, name);
+                if (result.fileDiagnostics == FileItemStatus.Created) createdFiles.Add(result);
+                if (result.fileDiagnostics == FileItemStatus.Exists || result.fileDiagnostics == FileItemStatus.Created) return result;
             }
 
             return result;
@@ -75,7 +64,7 @@
 
         
         
-        static public bool DeleteHandle(FileHandle target) {
+        static public bool DeleteHandle(FSItemHandle target) {
 // For now this will not be used, because the file's are being used
 // in the moment of the supposed deletion, which leads to exception
             bool isWrapped = !string.IsNullOrWhiteSpace(target.wrappingDirectory);
@@ -111,25 +100,15 @@
             return false;
         }
 
-        static public void ClearCreatedHandles() {
-// Don't use because of concerns related to DeleteHandle(FileHandle)
-            for (int i = 0; i < createdFiles.Count; i++) {
-                Console.WriteLine($"File: {createdFiles[i].fullFilePath}. Status: {createdFiles[i].fileState}.");
-                if (createdFiles[i].fileState == FileItemStatus.Created) {
-                   DeleteHandle(createdFiles[i]);
-                }
-            }
-            Console.ReadKey();
-        }
 
-        static private (FileItemStatus directoryStatus, FileItemStatus fileStatus) TryCreateNestedFile(string dirPath, string dirName, string fileName) {
+/*        static private (FileItemStatus directoryStatus, FileItemStatus fileStatus) TryCreateNestedFile(string dirPath, string dirName, string name) {
             FileItemStatus directoryStatus;
             FileItemStatus fileStatus;
 
             directoryStatus = EstablishDirectory(dirPath, dirName);
             if (directoryStatus == FileItemStatus.Denied) return (FileItemStatus.Denied, FileItemStatus.Retracted);
                 
-            fileStatus = EstablishFile(Path.Combine(dirPath, dirName), fileName);
+            fileStatus = EstablishFile(Path.Combine(dirPath, dirName), name);
             if (fileStatus == FileItemStatus.Denied) {
                 if (directoryStatus == FileItemStatus.Created) {
                     Directory.Delete(Path.Combine(dirPath, dirName));
@@ -137,36 +116,9 @@
                 }
             }
             return (directoryStatus, fileStatus);
-        }
-
-        static private FileItemStatus EstablishDirectory(string? basePath, string createDirectory){
-            if (CheckDirectoryWritePermission(basePath) != null) {
-#pragma warning disable CS8604 // Null reference not possible
-                string targetPath = Path.Combine(basePath, createDirectory);
-#pragma warning restore CS8604
-                if (Directory.Exists(targetPath)) return FileItemStatus.Exists;
-                try {
-                    Directory.CreateDirectory(targetPath);
-                    return Directory.Exists(targetPath) ? FileItemStatus.Created : FileItemStatus.Denied;
-                } catch {
-                    return FileItemStatus.Denied;
-                }
-            }
-            return FileItemStatus.Denied;
-        }
-
-        internal Span<byte> ReadFile(long readFrom, long readTo) {
-            long fileLength = new FileInfo(fullFilePath).Length;
-            if (readTo > fileLength) readTo = fileLength;
-            if (readFrom < 0) readFrom = 0;
-            Span<byte> result = new byte[(int)(readTo - readFrom)];
-            FileStream fs = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            fs.Seek(readFrom, SeekOrigin.Begin);
-            fs.Read(result);
-            return result;
-        }
-        
-        static private string? CheckDirectoryWritePermission(string? basePath) {
+        } */
+       
+        static internal string? CheckDirectoryWritePermission(string? basePath) {
             if (string.IsNullOrWhiteSpace(basePath)) return null;
             if (!Directory.Exists(basePath)) return null;
             string testDir = Path.Combine(basePath, $"WRITE_PROBE_{Guid.NewGuid():N}");
@@ -181,6 +133,61 @@
             }
         }
 
+    }
+    
+    class DirHandle : FSItemHandle {
+ 
+        static public FSItemHandle EstablishDirAccess(string dirName, string path, bool interruptIfFailure = false) {
+            DirHandle result = EstablishDirectory(dirName, path);
+            if (!Directory.Exists(Path.Combine(path, dirName))) {
+                result.fileDiagnostics.PushException("FIle doesn't exist: creation/retrieval failed");
+                if (interruptIfFailure) throw result.fileDiagnostics.collectedThrows[result.fileDiagnostics.collectedThrows.Count - 1];
+            }
+            return result;
+        }
+
+
+        static private DirHandle EstablishDirectory(string dirName, string path){
+            DirHandle result = new DirHandle() {
+                name = dirName,
+                localPath = path
+            };
+
+            if (CheckDirectoryWritePermission(path) != null) {
+                string targetPath = Path.Combine(path, dirName);
+                if (Directory.Exists(targetPath)) {
+                    result.fileDiagnostics.outcome = result.fileDiagnostics.FileItemStatus.Exists;
+                    return result;
+                } else {
+                    try {
+                        Directory.CreateDirectory(targetPath);
+                        result.fileDiagnostics.outcome = Directory.Exists(targetPath) ? result.fileDiagnostics.FileItemStatus.Created : result.fileDiagnostics.FileItemStatus.Denied;
+                    } catch (Exception ex) {
+                        result.fileDiagnostics.PushException(ex);
+                        result.fileDiagnostics.outcome = result.fileDiagnostics;
+                    }
+                }
+            }
+            return result;
+        }
+
+        
+        
+    }
+
+    class FileHandle : FSItemHandle {
+
+        internal Span<byte> ReadFile(long readFrom, long readTo) {
+            long fileLength = new FileInfo(fullFilePath).Length;
+            if (readTo > fileLength) readTo = fileLength;
+            if (readFrom < 0) readFrom = 0;
+            Span<byte> result = new byte[(int)(readTo - readFrom)];
+            FileStream fs = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            fs.Seek(readFrom, SeekOrigin.Begin);
+            fs.Read(result);
+            return result;
+        }
+
         static private FileItemStatus EstablishFile(string? basePath, string targetFile) {
             if (CheckDirectoryWritePermission(basePath) == null) return FileItemStatus.Denied;
 #pragma warning disable CS8604 // Null reference not possible
@@ -193,6 +200,29 @@
             } catch {
                 return FileItemStatus.Denied;
             }
+        }
+    }
+
+    internal class FileState {
+        bool ReadyToWrite = false;
+        internal List<Exception> collectedThrows = new List<Exception> ();
+        internal FileItemStatus outcome = FileItemStatus.NoInfo;
+
+        public enum FileItemStatus {
+            NoInfo, // Info has yet to be gathered
+            Exists, // A File with the same name existed
+            Denied, // Failed to create the file
+            Missing, // File isn't present during check
+            Created, // successfully created the file
+            Retracted // A file was to be created, but prevented due to unmet requirements 
+        }
+
+        internal void PushException(Exception ex) {
+            collectedThrows.Add(ex);
+        }
+
+        internal void PushException(string exMsg) {
+            collectedThrows.Add(new Exception(exMsg));
         }
     }
 }
