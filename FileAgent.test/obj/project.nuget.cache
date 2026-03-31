@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BNP/DWMDuOI=",
+  "dgSpecHash": "aVj736M/r6I=",
   "success": true,
-  "projectFilePath": "/home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/FileAgent.test.csproj",
+  "projectFilePath": "/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/FileAgent.test.csproj",
   "expectedPackageFiles": [
     "/home/danko/.nuget/packages/coverlet.collector/6.0.4/coverlet.collector.6.0.4.nupkg.sha512",
     "/home/danko/.nuget/packages/microsoft.codecoverage/17.14.1/microsoft.codecoverage.17.14.1.nupkg.sha512",

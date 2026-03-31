@@ -98,3 +98,14 @@
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.genruntimeconfig.cache
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/obj/Debug/net10.0/ref/FileAgent.test.dll
 /home/danko/Projects/CSharp/FileAgentDLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.sourcelink.json
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/bin/Debug/net10.0/.msCoverageSourceRootsMapping_FileAgent.test
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/bin/Debug/net10.0/CoverletSourceRootsMapping_FileAgent.test
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.csproj.AssemblyReference.cache
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.GeneratedMSBuildEditorConfig.editorconfig
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.AssemblyInfoInputs.cache
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.AssemblyInfo.cs
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.csproj.CoreCompileInputs.cache
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.sourcelink.json
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.dll
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/refint/FileAgent.test.dll
+/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent.test/obj/Debug/net10.0/FileAgent.test.pdb

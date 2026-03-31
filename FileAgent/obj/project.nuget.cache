@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "cC9e1fwjNXY=",
+  "dgSpecHash": "x90f+6xrSLI=",
   "success": true,
-  "projectFilePath": "/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/FileAgent.csproj",
+  "projectFilePath": "/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent/FileAgent.csproj",
   "expectedPackageFiles": [
     "/home/danko/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.4/microsoft.aspnetcore.app.ref.10.0.4.nupkg.sha512"
   ],

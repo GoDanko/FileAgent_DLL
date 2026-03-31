@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/FileAgent.csproj": {}
+    "/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent/FileAgent.csproj": {}
   },
   "projects": {
-    "/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/FileAgent.csproj": {
+    "/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent/FileAgent.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/FileAgent.csproj",
+        "projectUniqueName": "/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent/FileAgent.csproj",
         "projectName": "FileAgent",
-        "projectPath": "/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/FileAgent.csproj",
+        "projectPath": "/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent/FileAgent.csproj",
         "packagesPath": "/home/danko/.nuget/packages/",
-        "outputPath": "/home/danko/Projects/CSharp/FileAgentDLL/FileAgent/obj/",
+        "outputPath": "/home/danko/Projects/CSharp/FileAgent_DLL/FileAgent/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/danko/.nuget/NuGet/NuGet.Config"
