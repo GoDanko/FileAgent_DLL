@@ -5,18 +5,21 @@
         public string name = "";
         public string localPath = "";
         internal bool isDirectory = false;
-        internal DiagnosticState itemDiagnostics;
-        internal Permissions accessRights;
+        internal DiagnosticState diagnosticData;
+        
+        [Flags]
+        public enum Permissions : byte {
+            None = 0,
+            Read = 1 << 0,
+            Write = 1 << 1,
+            Delete = 1 << 2,
 
-        public enum Permissions {
-            None,
-            Read,
-            Write,
-            ReadWrite
+            ReadWrite = Read | Write,
+            Full = Read | Write | Delete
         }
 
         internal FSItemHandle() {
-            itemDiagnostics = new DiagnosticState();
+            diagnosticData = new DiagnosticState();
         }
 
         static public bool DeleteHandle(FSItemHandle target) {
@@ -30,7 +33,7 @@
                     return true;
                 }
             } catch (Exception ex) {
-                target.itemDiagnostics.PushException(ex);
+                target.diagnosticData.PushException(ex);
             }
             
             return false;
@@ -53,14 +56,18 @@
 
     }
     
-    class DirHandle : FSItemHandle {
+    public class DirHandle : FSItemHandle {
+        
+        internal Permissions fileRights;
+        internal Permissions dirRights;
  
         static public FSItemHandle EstablishDirAccess(string dirName, string path, bool interruptIfFailure = false) {
             DirHandle result = EstablishDirectory(dirName, path);
             if (!Directory.Exists(Path.Combine(path, dirName))) {
-                result.itemDiagnostics.PushException("FIle doesn't exist: creation/retrieval failed");
-                if (interruptIfFailure) throw result.itemDiagnostics.logs[result.itemDiagnostics.logs.Count - 1];
+                result.diagnosticData.PushException("FIle doesn't exist: creation/retrieval failed");
+                if (interruptIfFailure) throw result.diagnosticData.logs[result.diagnosticData.logs.Count - 1];
             }
+            result.ProbeAccessRights();
             return result;
         }
 
@@ -72,23 +79,70 @@
             if (CheckDirectoryWritePermission(path) != null) {
                 string targetPath = Path.Combine(path, dirName);
                 if (Directory.Exists(targetPath)) {
-                    result.itemDiagnostics.outcome = DiagnosticState.FileItemStatus.Exists;
+                    result.diagnosticData.outcome = DiagnosticState.FileItemStatus.Exists;
                     return result;
                 } else {
                     try {
                         Directory.CreateDirectory(targetPath);
-                        result.itemDiagnostics.outcome = Directory.Exists(targetPath) ? DiagnosticState.FileItemStatus.Created : DiagnosticState.FileItemStatus.Denied;
+                        result.diagnosticData.outcome = Directory.Exists(targetPath) ? DiagnosticState.FileItemStatus.Created : DiagnosticState.FileItemStatus.Denied;
                     } catch (Exception ex) {
-                        result.itemDiagnostics.PushException(ex);
-                        result.itemDiagnostics.outcome = DiagnosticState.FileItemStatus.Denied;
+                        result.diagnosticData.PushException(ex);
+                        result.diagnosticData.outcome = DiagnosticState.FileItemStatus.Denied;
                     }
                 }
             }
             return result;
         }
+
+        public void ProbeAccessRights() {
+            string testDir = Path.Combine(localPath, name, $"FileAgentDLL_TESTDIR{Guid.NewGuid():N}");
+            string testFile = Path.Combine(testDir, $"FileAgentDLL_TESTFILE{Guid.NewGuid():N}");
+
+            bool createdDir = false;
+            try {
+                Directory.CreateDirectory(testDir);
+                createdDir = true;
+            } catch {}
+            if (createdDir) dirRights |= Permissions.Write;
+            
+            bool createdFile = true;
+            bool readFromFile = true;
+            try {
+                Span<byte> probeTxt = stackalloc byte[] {0x74,0x65,0x73,0x74}; // "test" in UTF8/ASCII
+                File.WriteAllBytes(testFile, probeTxt.ToArray());
+                Span<byte> readProbe = File.ReadAllBytes(testFile);
+                for (byte i = 0; i < probeTxt.Length; i++) {
+                    if (probeTxt[i] != readProbe[i]) readFromFile = false;
+                } 
+            } catch {
+                readFromFile = false;
+            }
+            if (createdFile) {
+                fileRights |= Permissions.Write;
+                if (readFromFile) {
+                    dirRights |= Permissions.Read;
+                    fileRights |= Permissions.Read;
+                }
+            }
+            
+            bool deletedDir = false;
+            bool deletedFile = false;
+            try {
+                Directory.Delete(testDir);
+                deletedDir = true;
+            } catch {}
+            try {
+                File.Delete(testFile);
+                deletedFile = true;
+            } catch {}
+            if (deletedFile) {fileRights |= Permissions.Delete;}
+            if (deletedDir) {dirRights |= Permissions.Delete;}
+        }
     }
 
-    class FileHandle : FSItemHandle {
+    public class FileHandle : FSItemHandle {
+        
+        internal Permissions accessRights;
 
         public void ProbeAccessRights() {
             string targetPath = Path.Combine(localPath, name);
@@ -123,16 +177,17 @@
         }
 
         static public FSItemHandle EstablishFileAccess(string fileName, string path, bool interruptIfFailure = false) {
-            DirHandle result = EstablishFile(fileName, path);
+            FileHandle result = EstablishFile(fileName, path);
             if (!File.Exists(Path.Combine(path, fileName))) {
-                result.itemDiagnostics.PushException("FIle doesn't exist: creation/retrieval failed");
-                if (interruptIfFailure) throw result.itemDiagnostics.logs[result.itemDiagnostics.logs.Count - 1];
+                result.diagnosticData.PushException("FIle doesn't exist: creation/retrieval failed");
+                if (interruptIfFailure) throw result.diagnosticData.logs[result.diagnosticData.logs.Count - 1];
             }
+            result.ProbeAccessRights();
             return result;
         }
  
-        static private DirHandle EstablishFile(string fileName, string path){
-            DirHandle result = new DirHandle() {
+        static private FileHandle EstablishFile(string fileName, string path){
+            FileHandle result = new FileHandle() {
                 name = fileName,
                 localPath = path,
                 isDirectory = false
@@ -140,15 +195,15 @@
             if (CheckDirectoryWritePermission(path) != null) {
                 string targetPath = Path.Combine(path, fileName);
                 if (File.Exists(targetPath)) {
-                    result.itemDiagnostics.outcome = DiagnosticState.FileItemStatus.Exists;
+                    result.diagnosticData.outcome = DiagnosticState.FileItemStatus.Exists;
                     return result;
                 } else {
                     try {
-                        File.Create(targetPath).Dispose();
-                        result.itemDiagnostics.outcome = File.Exists(targetPath) ? DiagnosticState.FileItemStatus.Created : DiagnosticState.FileItemStatus.Denied;
+                        using (File.Create(targetPath)) {};
+                        result.diagnosticData.outcome = File.Exists(targetPath) ? DiagnosticState.FileItemStatus.Created : DiagnosticState.FileItemStatus.Denied;
                     } catch (Exception ex) {
-                        result.itemDiagnostics.PushException(ex);
-                        result.itemDiagnostics.outcome = DiagnosticState.FileItemStatus.Denied;
+                        result.diagnosticData.PushException(ex);
+                        result.diagnosticData.outcome = DiagnosticState.FileItemStatus.Denied;
                     }
                 }
             }

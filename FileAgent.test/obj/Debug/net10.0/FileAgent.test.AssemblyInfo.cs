@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FileAgent.test")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ce5d76b428ddc2afe2ad04ee37071e2b99d56fe1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6e121479d5ed87681bb320b13840ed2323404abd")]
 [assembly: System.Reflection.AssemblyProductAttribute("FileAgent.test")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FileAgent.test")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
