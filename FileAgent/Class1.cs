@@ -54,21 +54,71 @@
             }
         }
 
+       internal bool HasNestedContent(string targetString) { 
+            foreach (char letter in targetString) {
+                if (letter == '/' || letter == '\\') return true;
+            }
+            return false;
+        }
+
     }
     
     public class DirHandle : FSItemHandle {
         
         internal Permissions fileRights;
         internal Permissions dirRights;
+        List<FSItemHandle> DirContent = new List<FSItemHandle> ();
  
         static public FSItemHandle EstablishDirAccess(string dirName, string path, bool interruptIfFailure = false) {
             DirHandle result = EstablishDirectory(dirName, path);
             if (!Directory.Exists(Path.Combine(path, dirName))) {
-                result.diagnosticData.PushException("FIle doesn't exist: creation/retrieval failed");
+                result.diagnosticData.PushException("HANDLE CREATION error. FIleSystem reports file as missing, handle unreliable");
                 if (interruptIfFailure) throw result.diagnosticData.logs[result.diagnosticData.logs.Count - 1];
             }
             result.ProbeAccessRights();
             return result;
+        }
+
+        public FSItemHandle? RegisterChildItem(string targetName) {
+            if (HasNestedContent(targetName)) {
+                diagnosticData.PushException($"ADDING HANDLE error. Adding {targetName} failed, Nested content disallowed.");
+                return null;
+            }
+
+            if (Directory.Exists(Path.Combine(localPath, name, targetName))) { 
+                return DirHandle.EstablishDirAccess(Path.Combine(localPath, name), targetName);
+            } else if (File.Exists(Path.Combine(localPath, name, targetName))) { 
+                return FileHandle.EstablishFileAccess(Path.Combine(localPath, name), targetName);
+            }
+            diagnosticData.PushException($"ADDING HANDLE error. {targetName} doesn't exist: create it first");
+            return null;
+        }
+
+        public List<FSItemHandle>? RegisterAllChilds() {
+            IEnumerator<string> containedItems;
+
+            try {
+                containedItems = Directory.EnumerateFileSystemEntries(Path.Combine(localPath, name)).GetEnumerator();
+            } catch (Exception ex) {
+                diagnosticData.PushException(ex);
+                return null;
+            }
+           
+            List<FSItemHandle> result = new List<FSItemHandle>();
+            while (true) {
+                try {
+                    if (!containedItems.MoveNext()) {
+                        break;
+                    } else {
+                        FSItemHandle? fsItem = RegisterChildItem(containedItems.Current);
+                        if (fsItem != null) result.Add(fsItem);
+                    }
+                } catch (Exception ex) {
+                    diagnosticData.PushException(ex);
+                }
+            }
+            return result;
+
         }
 
         static private DirHandle EstablishDirectory(string dirName, string path){
