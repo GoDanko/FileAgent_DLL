@@ -5,7 +5,7 @@
         public string name = "";
         public string localPath = "";
         internal bool isDirectory = false;
-        internal DiagnosticState diagnosticData;
+        public DiagnosticState diagnosticData;
         
         [Flags]
         public enum Permissions : byte {
@@ -260,22 +260,27 @@
             return result;
         }
 
-        internal Span<byte> ReadFile(long readFrom, long readTo) {
+        internal byte[] ReadFile(long readFrom, long readTo) {
             long fileLength = new FileInfo(Path.Combine(localPath, name)).Length;
             if (readTo > fileLength) readTo = fileLength;
             if (readFrom < 0) readFrom = 0;
-            Span<byte> result = new byte[(int)(readTo - readFrom)];
-            FileStream fs = new FileStream(Path.Combine(localPath, name), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            if (readFrom > readTo) return new byte[0];
+            byte[] result = new byte[(long)(readTo - readFrom)];
+            using FileStream fs = new FileStream(Path.Combine(localPath, name), FileMode.Open, FileAccess.Read, FileShare.Read);
             fs.Seek(readFrom, SeekOrigin.Begin);
-            fs.Read(result);
+            int bytesRead = 0;
+            Span<byte> writeWindow = result; 
+            while (bytesRead < readTo - readFrom) {
+                bytesRead += fs.Read(writeWindow.Slice(bytesRead));
+                if (bytesRead == 0) break;
+            }
             return result;
         }
    }
 
-    internal class DiagnosticState {
-        bool ReadyToWrite = false;
-        internal List<Exception> logs = new List<Exception> ();
-        internal FileItemStatus outcome = FileItemStatus.NoInfo;
+    public class DiagnosticState {
+        public List<Exception> logs = new List<Exception> ();
+        public FileItemStatus outcome = FileItemStatus.NoInfo;
         
         public enum FileItemStatus {
             NoInfo, // Info has yet to be gathered

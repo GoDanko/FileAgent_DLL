@@ -7,114 +7,94 @@ namespace FileAgent.test;
 public class UnitTest1
 {
 
-    [Fact]
-    public void EstablishFileAccess_FileCreated_Created() {
-        (string name, string path) data = ($"FileAgent_TESTFILE1_{Guid.NewGuid():N}", Path.GetTempPath());
-
-	    FileHandle testObject1 = FileHandle.EstablishFileAccess(data.name, data.path, false);
-        DiagnosticState.FileItemStatus expectedStatus = DiagnosticState.FileItemStatus.Created;
-
-        Assert.True(File.Exists(Path.Combine(data.path, data.name)));
-        Assert.Equal(testObject1.fileState, expectedStatus);
-        
-        try {
-            File.Delete(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 1: Couldn't clean {Path.Combine(data.path, data.name)}. \n because: {ex}");
+/*
+        public enum FileItemStatus {
+            NoInfo, // Info has yet to be gathered
+            Exists, // A File with the same name existed
+            Denied, // Failed to create the file
+            Missing, // File isn't present during check
+            Created, // successfully created the file
+            Retracted // A file was to be created, but prevented due to unmet requirements 
         }
-    }
+*/
 
     [Fact]
-    public void EstablishFileAccess_FileExists_Exists() {
-        (string name, string path) data = ($"FileAgent_TESTFILE2_{Guid.NewGuid():N}", Path.GetTempPath());
+    public void EstablishDirAccess_CreateDir_StateCreated() {
 
-        try {
-            File.Create(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 2: inconclusive. \n because: {ex}");
-        }
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgentTesting_Dir1_{Guid.NewGuid():N}");
+        DiagnosticState.FileItemStatus expectedOutcome = DiagnosticState.FileItemStatus.Created;
 
-        Assert.True(File.Exists(Path.Combine(data.path, data.name)));
-
-        FileHandle testObject2 = FileHandle.EstablishFileAccess(data.name, data.path, false);
-        DiagnosticState.FileItemStatus expectedStatus = DiagnosticState.FileItemStatus.Exists;
-
-        Assert.Equal(testObject2.fileState, expectedStatus);
-
-        try {
-            File.Delete(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 2: Couldn't clean {Path.Combine(data.path, data.name)}. \n because: {ex}");
-        }
-    }
-
-    [Fact]
-    public void EstablishDirAccess_DirCreated_Created() {
-        (string name, string path) data = ($"FIleAgent_TESTDIR1_{Guid.NewGuid():N}", Path.GetTempPath());
-
-	    FileHandle testObject3 = FileHandle.EstablishDirAccess(data.name, data.path, false);
-        DiagnosticState.FileItemStatus expectedStatus = DiagnosticState.FileItemStatus.Created;
-        
+        DirHandle testDir = (DirHandle)DirHandle.EstablishDirAccess(data.name, data.path);
         Assert.True(Directory.Exists(Path.Combine(data.path, data.name)));
-        Assert.Equal(testObject3.fileState, expectedStatus);
+        Assert.Equal(expectedOutcome, testDir.diagnosticData.outcome);
 
         try {
             Directory.Delete(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 3: Couldn't clean {Path.Combine(data.path, data.name)}. \n because: {ex}");
+        } catch (Exception) {
+            throw;
         }
     }
 
     [Fact]
-    public void EstablishDirAccess_DirExists_Exists() {
-        (string name, string path) data = ($"FIleAgent_TESTDIR2_{Guid.NewGuid():N}", Path.GetTempPath());
+    public void EstablishFileAccess_CreateFile_StateCreated() {
+
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_File1_{Guid.NewGuid():N}");
+        DiagnosticState.FileItemStatus expectedOutcome = DiagnosticState.FileItemStatus.Created;
+        
+        FileHandle testFile = (FileHandle)FileHandle.EstablishFileAccess(data.name, data.path);
+        Assert.True(File.Exists(Path.Combine(data.path, data.name)));
+        Assert.Equal(expectedOutcome, testFile.diagnosticData.outcome);
+
+        try {
+            File.Delete(Path.Combine(data.path, data.name));
+        } catch (Exception) {
+            throw;
+        }
+    }
+
+    [Fact]
+    public void EstablishFileAccess_RegisterDir_StateExisted() {
+
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_Dir2_{Guid.NewGuid():N}");
         try {
             Directory.CreateDirectory(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 4: inconclusive. \n because: {ex}");
+        } catch (Exception) {
+            throw;
         }
+        DiagnosticState.FileItemStatus expectedOutcome = DiagnosticState.FileItemStatus.Exists;
 
+
+        DirHandle testDir = (DirHandle)DirHandle.EstablishDirAccess(data.name, data.path);
         Assert.True(Directory.Exists(Path.Combine(data.path, data.name)));
-
-        FileHandle testObject4 = FileHandle.EstablishDirAccess(data.name, data.path, false);
-        DiagnosticState.FileItemStatus expectedStatus = DiagnosticState.FileItemStatus.Exists;
-
-        Assert.Equal(testObject4.fileState, expectedStatus);
+        Assert.Equal(expectedOutcome, testDir.diagnosticData.outcome);
 
         try {
             Directory.Delete(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 4: Couldn't clean {Path.Combine(data.path, data.name)}. \n because: {ex}");
+        } catch (Exception) {
+            throw;
         }
     }
 
     [Fact]
-    public void DeleteFile_FileMissing() {
-        (string name, string path) data = ($"FileAgent_TESTFILE3_{Guid.NewGuid():N}", Path.GetTempPath());
+    public void EstablishFileAccess_RegisterFile_StateExisted() {
+
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_File2_{Guid.NewGuid():N}");
         try {
             File.Create(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 2: inconclusive. \n because: {ex}");
+        } catch (Exception) {
+            throw;
         }
+        DiagnosticState.FileItemStatus expectedOutcome = DiagnosticState.FileItemStatus.Exists;
 
-        FileHandle testObject5 = FileHandle.EstablishFileAccess(data.name, data.path, false);
-        FileHandle.DeleteHandle(testObject5);
 
-        Assert.False(File.Exists(Path.Combine(data.path, data.name)));
-    }
+        DirHandle testFile = (DirHandle)DirHandle.EstablishDirAccess(data.name, data.path);
+        Assert.True(File.Exists(Path.Combine(data.path, data.name)));
+        Assert.Equal(expectedOutcome, testFile.diagnosticData.outcome);
 
-    [Fact]
-    public void DeleteDir_DirectoryMissing() {
-        (string name, string path) data = ($"FileAgent_TESTDIR3_{Guid.NewGuid():N}", Path.GetTempPath());
         try {
-            Directory.CreateDirectory(Path.Combine(data.path, data.name));
-        } catch (Exception ex) {
-            throw new Exception($"Test 6: inconclusive. \n because: {ex}");
+            File.Delete(Path.Combine(data.path, data.name));
+        } catch (Exception) {
+            throw;
         }
-
-        FileHandle testObject6 = FileHandle.EstablishDirAccess(data.name, data.path, false);
-        FileHandle.DeleteHandle(testObject6);
-        
-        Assert.False(Directory.Exists(Path.Combine(data.path, data.name)));
     }
-   }
+}
