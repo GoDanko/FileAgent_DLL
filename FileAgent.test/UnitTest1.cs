@@ -21,7 +21,7 @@ public class UnitTest1
     [Fact]
     public void EstablishDirAccess_CreateDir_StateCreated() {
 
-        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgentTesting_Dir1_{Guid.NewGuid():N}");
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_Dir0_{Guid.NewGuid():N}");
         DiagnosticState.FileItemStatus expectedOutcome = DiagnosticState.FileItemStatus.Created;
 
         DirHandle testDir = (DirHandle)DirHandle.EstablishDirAccess(data.name, data.path);
@@ -38,7 +38,7 @@ public class UnitTest1
     [Fact]
     public void EstablishFileAccess_CreateFile_StateCreated() {
 
-        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_File1_{Guid.NewGuid():N}");
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_File0_{Guid.NewGuid():N}");
         DiagnosticState.FileItemStatus expectedOutcome = DiagnosticState.FileItemStatus.Created;
         
         FileHandle testFile = (FileHandle)FileHandle.EstablishFileAccess(data.name, data.path);
@@ -55,7 +55,7 @@ public class UnitTest1
     [Fact]
     public void EstablishFileAccess_RegisterDir_StateExisted() {
 
-        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_Dir2_{Guid.NewGuid():N}");
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_Dir1_{Guid.NewGuid():N}");
         try {
             Directory.CreateDirectory(Path.Combine(data.path, data.name));
         } catch (Exception) {
@@ -78,7 +78,7 @@ public class UnitTest1
     [Fact]
     public void EstablishFileAccess_RegisterFile_StateExisted() {
 
-        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_File2_{Guid.NewGuid():N}");
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_File1_{Guid.NewGuid():N}");
         try {
             File.Create(Path.Combine(data.path, data.name));
         } catch (Exception) {
@@ -87,7 +87,7 @@ public class UnitTest1
         DiagnosticState.FileItemStatus expectedOutcome = DiagnosticState.FileItemStatus.Exists;
 
 
-        DirHandle testFile = (DirHandle)DirHandle.EstablishDirAccess(data.name, data.path);
+        FileHandle testFile = (FileHandle)FileHandle.EstablishFileAccess(data.name, data.path);
         Assert.True(File.Exists(Path.Combine(data.path, data.name)));
         Assert.Equal(expectedOutcome, testFile.diagnosticData.outcome);
 

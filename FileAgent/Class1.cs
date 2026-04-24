@@ -145,8 +145,8 @@
         }
 
         public void ProbeAccessRights() {
-            string testDir = Path.Combine(localPath, name, $"FileAgentDLL_TESTDIR{Guid.NewGuid():N}");
-            string testFile = Path.Combine(testDir, $"FileAgentDLL_TESTFILE{Guid.NewGuid():N}");
+            string testDir = Path.Combine(localPath, name, $"FileAgentDLL_PROBEDIR{Guid.NewGuid():N}");
+            string testFile = Path.Combine(testDir, $"FileAgentDLL_PROBEFILE{Guid.NewGuid():N}");
 
             bool createdDir = false;
             try {
@@ -178,12 +178,12 @@
             bool deletedDir = false;
             bool deletedFile = false;
             try {
-                Directory.Delete(testDir);
-                deletedDir = true;
-            } catch {}
-            try {
                 File.Delete(testFile);
                 deletedFile = true;
+            } catch {}
+            try {
+                Directory.Delete(testDir);
+                deletedDir = true;
             } catch {}
             if (deletedFile) {fileRights |= Permissions.Delete;}
             if (deletedDir) {dirRights |= Permissions.Delete;}
