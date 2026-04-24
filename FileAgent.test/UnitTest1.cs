@@ -97,4 +97,42 @@ public class UnitTest1
             throw;
         }
     }
+
+    [Fact]
+    public void RegisterAllChilds_PopulateListWithFSItems() {
+
+        (string path, string name) data = ($"{Path.GetTempPath()}", $"FileAgent.Testing_Dir2_{Guid.NewGuid():N}");
+        DirHandle testDir = (DirHandle)DirHandle.EstablishDirAccess(data.name, data.path);
+        string testPath = Path.Combine(data.path, data.name);
+        string[] fileSystemItemPaths = new string[] {
+            Path.Combine(testPath, $"FileAgent.TestChildDetection1{Guid.NewGuid():N}"),
+            Path.Combine(testPath, $"FileAgent.TestChildDetection2{Guid.NewGuid():N}"),
+            Path.Combine(testPath, $"FileAgent.TestChildDetection3{Guid.NewGuid():N}"),
+            Path.Combine(testPath, $"FileAgent.TestChildDetection4{Guid.NewGuid():N}")
+        };
+        try {
+            Directory.CreateDirectory(fileSystemItemPaths[0]);
+            Directory.CreateDirectory(fileSystemItemPaths[1]);
+            File.Create(fileSystemItemPaths[2]);
+            File.Create(fileSystemItemPaths[3]);
+        } catch {}
+
+        List<FSItemHandle>? result = testDir.RegisterAllChilds();
+
+        if (result != null) {
+        Assert.Equal(fileSystemItemPaths.Length, testDir.filesskimmedover);
+        Assert.Equal(fileSystemItemPaths.Length, result.Count);
+        for (int i = 0; i < result.Count; i++) {
+            Assert.Equal(Path.Combine(result[i].localPath, result[i].name), fileSystemItemPaths[i]);
+        }
+        }
+
+        try {
+            Directory.Delete(fileSystemItemPaths[0]);
+            Directory.Delete(fileSystemItemPaths[1]);
+            File.Delete(fileSystemItemPaths[2]);
+            File.Delete(fileSystemItemPaths[3]);
+            Directory.Delete(Path.Combine(data.path, data.name));
+        } catch {}
+    }
 }

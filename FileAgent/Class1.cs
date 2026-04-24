@@ -6,6 +6,7 @@
         public string localPath = "";
         internal bool isDirectory = false;
         public DiagnosticState diagnosticData;
+        public int filesskimmedover = 0;
         
         [Flags]
         public enum Permissions : byte {
@@ -67,7 +68,7 @@
         
         internal Permissions fileRights;
         internal Permissions dirRights;
-        List<FSItemHandle> DirContent = new List<FSItemHandle> ();
+        public List<FSItemHandle>? dirContent = null;
  
         static public FSItemHandle EstablishDirAccess(string dirName, string path, bool interruptIfFailure = false) {
             DirHandle result = EstablishDirectory(dirName, path);
@@ -80,6 +81,7 @@
         }
 
         public FSItemHandle? RegisterChildItem(string targetName) {
+            // This thing returns null even when it shouldn't. Investigate next time.
             if (HasNestedContent(targetName)) {
                 diagnosticData.PushException($"ADDING HANDLE error. Adding {targetName} failed, Nested content disallowed.");
                 return null;
@@ -87,7 +89,8 @@
 
             if (Directory.Exists(Path.Combine(localPath, name, targetName))) { 
                 return DirHandle.EstablishDirAccess(Path.Combine(localPath, name), targetName);
-            } else if (File.Exists(Path.Combine(localPath, name, targetName))) { 
+            }
+            if (File.Exists(Path.Combine(localPath, name, targetName))) { 
                 return FileHandle.EstablishFileAccess(Path.Combine(localPath, name), targetName);
             }
             diagnosticData.PushException($"ADDING HANDLE error. {targetName} doesn't exist: create it first");
@@ -111,14 +114,17 @@
                         break;
                     } else {
                         FSItemHandle? fsItem = RegisterChildItem(containedItems.Current);
-                        if (fsItem != null) result.Add(fsItem);
+                        if (fsItem != null) {
+                            filesskimmedover++;
+                            result.Add(fsItem);
+                        }
                     }
                 } catch (Exception ex) {
                     diagnosticData.PushException(ex);
                 }
             }
+            containedItems.Dispose();
             return result;
-
         }
 
         static private DirHandle EstablishDirectory(string dirName, string path){
